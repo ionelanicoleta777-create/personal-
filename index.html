@@ -1,0 +1,861 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Furnicuța Fermieră</title>
+
+  <style>
+    :root{
+      --royal:#1f4bff;
+      --bg:#0b1220;
+      --panel:#0f1a30;
+      --card:#101f3d;
+      --txt:#eaf0ff;
+      --muted:#b9c6ea;
+      --stroke:rgba(255,255,255,.12);
+      --r:16px;
+      --shadow:0 18px 55px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: Arial, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background:
+        radial-gradient(900px 520px at 20% 10%, rgba(31,75,255,.22), transparent 60%),
+        radial-gradient(700px 420px at 80% 20%, rgba(31,75,255,.15), transparent 60%),
+        linear-gradient(180deg, var(--bg), #070b14);
+      color:var(--txt);
+      min-height:100vh;
+    }
+
+    header{
+      position:sticky; top:0; z-index:50;
+      background:rgba(11,18,32,.88);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--stroke);
+    }
+    .bar{
+      max-width:1100px; margin:0 auto;
+      padding:12px 16px;
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+    }
+    .brand{display:flex;flex-direction:column;gap:2px;cursor:pointer}
+    .brand b{letter-spacing:.2px}
+    .brand small{color:var(--muted)}
+    .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+    .btn{
+      border:1px solid var(--stroke);
+      background:rgba(255,255,255,.06);
+      color:var(--txt);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .btn:hover{background:rgba(255,255,255,.10)}
+    .btn-primary{
+      background: var(--royal);
+      border-color: rgba(255,255,255,.18);
+      box-shadow: 0 16px 34px rgba(31,75,255,.20);
+    }
+    .pill{
+      display:inline-block;
+      padding:2px 8px;
+      border-radius:999px;
+      background:rgba(255,255,255,.12);
+      margin-left:8px;
+      font-size:12px;
+    }
+
+    .wrap{max-width:1100px;margin:0 auto;padding:18px 16px 80px;}
+    .page{display:none}
+    .page.active{display:block}
+
+    .hero{
+      border:1px solid var(--stroke);
+      background:rgba(255,255,255,.05);
+      border-radius: var(--r);
+      padding:18px;
+      box-shadow: var(--shadow);
+    }
+    .hero h1{margin:0 0 8px;font-size:34px;line-height:1.05}
+    .hero p{margin:0;color:var(--muted);line-height:1.55;max-width:78ch}
+    .hero .row{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+
+    .section-title{margin:18px 0 10px}
+    .muted{color:var(--muted)}
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap:14px;
+    }
+    .card{
+      border:1px solid var(--stroke);
+      border-radius: var(--r);
+      background: rgba(16,31,61,.62);
+      overflow:hidden;
+      box-shadow: 0 12px 40px rgba(0,0,0,.25);
+    }
+    .card img{width:100%;height:180px;object-fit:cover;display:block}
+    .c{padding:12px}
+    .title-row{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+    .name{
+      margin:0;
+      font-size:16px;
+      cursor:pointer;
+      text-decoration: underline;
+      text-decoration-color: rgba(255,255,255,.22);
+      text-underline-offset: 3px;
+    }
+    .price{font-weight:800;white-space:nowrap}
+    .desc{margin:8px 0 10px;color:var(--muted);font-size:13px;line-height:1.45}
+    .row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+    input.qty{
+      width:90px;
+      padding:8px 10px;
+      border-radius:12px;
+      border:1px solid var(--stroke);
+      background:rgba(255,255,255,.06);
+      color:var(--txt);
+      outline:none;
+    }
+
+    .details{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:14px;
+      align-items:start;
+    }
+    @media (max-width: 860px){ .details{grid-template-columns:1fr;} }
+    .details .card{overflow:hidden}
+    .details img{height:320px}
+    .kv{
+      margin-top:10px;
+      border-top:1px solid rgba(255,255,255,.10);
+      padding-top:10px;
+      display:grid;
+      gap:8px;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .kv b{color:var(--txt);font-weight:700}
+
+    /* Cart drawer */
+    .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;z-index:90}
+    .drawer{
+      position:fixed; top:0; right:0; height:100%;
+      width:min(440px, 92vw);
+      background:rgba(11,18,32,.95);
+      backdrop-filter: blur(10px);
+      border-left:1px solid var(--stroke);
+      transform: translateX(105%);
+      transition: .2s ease;
+      z-index:100;
+      display:flex;flex-direction:column;
+    }
+    .backdrop.open{display:block}
+    .drawer.open{transform: translateX(0)}
+    .dhead{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--stroke)}
+    .dhead h3{margin:0;font-size:16px}
+    .dbody{padding:12px 14px;overflow:auto;flex:1}
+    .line{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+    .line b{display:block;font-size:13px}
+    .line span{display:block;color:var(--muted);font-size:12px;margin-top:4px}
+    .mini{display:flex;gap:6px}
+    .mini button{width:34px;height:34px;padding:0;border-radius:12px}
+    .dfoot{padding:12px 14px;border-top:1px solid var(--stroke);background:rgba(255,255,255,.03)}
+    .total{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;color:var(--muted)}
+    .total b{color:var(--txt);font-size:16px}
+    .note{margin:10px 0 0;color:var(--muted);font-size:12px;line-height:1.4}
+
+    /* Checkout modal */
+    .modal-bd{
+      position:fixed; inset:0;
+      background: rgba(0,0,0,.65);
+      display:none;
+      z-index:200;
+    }
+    .modal{
+      position:fixed; left:50%; top:50%;
+      transform: translate(-50%,-50%);
+      width:min(760px, 92vw);
+      background: rgba(11,18,32,.97);
+      border:1px solid var(--stroke);
+      border-radius: var(--r);
+      box-shadow: var(--shadow);
+      display:none;
+      z-index:210;
+      overflow:hidden;
+    }
+    .modal.open, .modal-bd.open{display:block}
+    .mhead{
+      padding:12px 14px;
+      border-bottom:1px solid var(--stroke);
+      display:flex; justify-content:space-between; align-items:center; gap:10px;
+    }
+    .mhead h3{margin:0;font-size:16px}
+    .mbody{padding:14px}
+    .form{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+    }
+    @media (max-width:720px){ .form{grid-template-columns:1fr;} }
+    label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
+    .field input, .field select, .field textarea{
+      width:100%;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--stroke);
+      background: rgba(255,255,255,.06);
+      color: var(--txt);
+      outline:none;
+      font-family: inherit;
+    }
+    .field textarea{min-height:86px;resize:vertical}
+    .full{grid-column: 1 / -1;}
+    .checkbox{
+      display:flex; gap:10px; align-items:flex-start;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--stroke);
+      background: rgba(255,255,255,.04);
+    }
+    .checkbox input{margin-top:2px}
+    .err{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(255,90,90,.35);
+      background: rgba(255,90,90,.10);
+      color: #ffd2d2;
+      display:none;
+      font-size:13px;
+      line-height:1.4;
+    }
+    .mfoot{
+      padding:12px 14px;
+      border-top:1px solid var(--stroke);
+      display:flex; justify-content:flex-end; gap:10px; flex-wrap:wrap;
+      background: rgba(255,255,255,.03);
+    }
+    .summary{
+      margin:0 0 12px;
+      color: var(--muted);
+      font-size:13px;
+      line-height:1.4;
+    }
+    .invoice-box{display:none;}
+    .invoice-box.open{display:block;}
+
+    /* Small contact block */
+    .contact-box{
+      margin-top:14px;
+      padding:12px;
+      border:1px solid var(--stroke);
+      border-radius: var(--r);
+      background: rgba(255,255,255,.04);
+      color: var(--muted);
+      line-height:1.55;
+      font-size:13px;
+    }
+    .contact-box b{color:var(--txt)}
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="bar">
+    <div class="brand" onclick="go('intro')" role="button" tabindex="0">
+      <b id="storeNameTop">Furnicuța Fermieră</b>
+      <small id="storeTagline">Doba, jud. Satu Mare · 0755334942 · furnicutafermiera@yahoo.com</small>
+    </div>
+
+    <div class="actions">
+      <button class="btn" onclick="go('intro')">Introducere</button>
+      <button class="btn" onclick="go('products')">Produse</button>
+      <button class="btn btn-primary" onclick="openCart()">
+        Coș <span class="pill" id="cartCount">0</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- INTRO -->
+  <section class="page active" id="page-intro">
+    <div class="hero">
+      <h1 id="storeNameHero">Furnicuța Fermieră</h1>
+      <p>
+        Suntem o mică fermă de la țară, unde creștem animalele în mod tradițional și pregătim produse
+        autentice, naturale, fără conservanți. Lucrăm în loturi mici, cu grijă pentru prospețime și gust,
+        folosind rețete simple, de casă. La noi găsești brânzeturi și preparate din oaie, pregătite cu
+        respect pentru tradiție.
+        <br><br>
+        Comenzile sunt ușoare: alegi produsele, cantitatea (kg/litru), adaugi în coș și finalizezi comanda.
+      </p>
+
+      <div class="contact-box">
+        <div><b>Adresă:</b> Localitatea Doba, jud. Satu Mare</div>
+        <div><b>Telefon:</b> 0755334942</div>
+        <div><b>Email:</b> furnicutafermiera@yahoo.com</div>
+      </div>
+
+      <div class="row">
+        <button class="btn btn-primary" onclick="go('products')">Vezi produsele</button>
+        <button class="btn" onclick="openCart()">Deschide coșul</button>
+      </div>
+    </div>
+
+    <h3 class="section-title">Recomandate</h3>
+    <div class="grid" id="introPreview"></div>
+  </section>
+
+  <!-- PRODUCTS -->
+  <section class="page" id="page-products">
+    <h2 class="section-title">Produse</h2>
+    <p class="muted" style="margin-top:0">
+      Apasă pe numele produsului pentru detalii. Cantitatea reprezintă <b>kg</b> sau <b>litri</b>, în funcție de produs.
+    </p>
+    <div class="grid" id="productGrid"></div>
+
+    <div class="contact-box" style="margin-top:18px;">
+      <div><b>Contact:</b> 0755334942 · furnicutafermiera@yahoo.com</div>
+      <div><b>Adresă:</b> Doba, jud. Satu Mare</div>
+    </div>
+  </section>
+
+  <!-- DETAILS -->
+  <section class="page" id="page-details">
+    <div class="row" style="margin-bottom:12px;">
+      <button class="btn" onclick="go('products')">Înapoi la produse</button>
+      <button class="btn btn-primary" onclick="openCart()">
+        Coș <span class="pill" id="cartCount2">0</span>
+      </button>
+    </div>
+    <div class="details" id="detailsBox"></div>
+
+    <div class="contact-box" style="margin-top:18px;">
+      <div><b>Furnicuța Fermieră</b></div>
+      <div>Doba, jud. Satu Mare</div>
+      <div>Telefon: 0755334942</div>
+      <div>Email: furnicutafermiera@yahoo.com</div>
+    </div>
+  </section>
+
+</div>
+
+<!-- CART -->
+<div class="backdrop" id="bd" onclick="closeCart()"></div>
+<aside class="drawer" id="drawer" aria-label="Coș">
+  <div class="dhead">
+    <h3>Coș</h3>
+    <button class="btn" onclick="closeCart()">Închide</button>
+  </div>
+
+  <div class="dbody" id="cartBody"></div>
+
+  <div class="dfoot">
+    <div class="total"><span>Total</span><b id="total">0 lei</b></div>
+    <button class="btn btn-primary" style="width:100%" onclick="openCheckout()">Finalizează</button>
+    <p class="note">Completezi email, telefon, adresă, plată și (opțional) date pentru factură.</p>
+  </div>
+</aside>
+
+<!-- CHECKOUT MODAL -->
+<div class="modal-bd" id="mbd" onclick="closeCheckout()"></div>
+<div class="modal" id="modal" aria-label="Finalizare comandă">
+  <div class="mhead">
+    <h3>Finalizare comandă</h3>
+    <button class="btn" onclick="closeCheckout()">Închide</button>
+  </div>
+
+  <div class="mbody">
+    <p class="summary" id="orderSummary"></p>
+
+    <div class="form">
+      <div class="field">
+        <label>Email</label>
+        <input id="cEmail" type="email" placeholder="ex: nume@email.ro" />
+      </div>
+
+      <div class="field">
+        <label>Telefon</label>
+        <input id="cPhone" type="text" placeholder="ex: 07xx xxx xxx" />
+      </div>
+
+      <div class="field full">
+        <label>Adresă de livrare</label>
+        <textarea id="cAddress" placeholder="Stradă, număr, bloc/scară/ap., oraș, județ, cod poștal"></textarea>
+      </div>
+
+      <div class="field">
+        <label>Metodă de plată</label>
+        <select id="cPayment">
+          <option value="Ramburs (cash la curier)">Ramburs (cash la curier)</option>
+          <option value="Transfer bancar">Transfer bancar</option>
+          <option value="Card la livrare (dacă e disponibil)">Card la livrare (dacă e disponibil)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Observații (opțional)</label>
+        <input id="cNotes" type="text" placeholder="ex: livrare după ora 18" />
+      </div>
+
+      <div class="field full">
+        <div class="checkbox">
+          <input id="needInvoice" type="checkbox" />
+          <div>
+            <b>Doresc factură</b><br/>
+            <span class="muted" style="font-size:12px;">Bifează și completează datele pentru facturare.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="field full invoice-box" id="invoiceBox">
+        <div class="form" style="grid-template-columns:1fr 1fr;">
+          <div class="field">
+            <label>Nume (PF) / Denumire firmă</label>
+            <input id="invName" type="text" placeholder="ex: Popescu Ion / SC Exemplu SRL" />
+          </div>
+          <div class="field">
+            <label>CNP / CIF</label>
+            <input id="invId" type="text" placeholder="ex: 123... / RO123..." />
+          </div>
+          <div class="field full">
+            <label>Adresă facturare</label>
+            <textarea id="invAddress" placeholder="Adresă completă pentru factură"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="err" id="errBox"></div>
+
+    <div class="contact-box" style="margin-top:14px;">
+      <div><b>Contact Furnicuța Fermieră</b></div>
+      <div>Localitatea Doba, jud. Satu Mare</div>
+      <div>Telefon: 0755334942</div>
+      <div>Email: furnicutafermiera@yahoo.com</div>
+    </div>
+  </div>
+
+  <div class="mfoot">
+    <button class="btn" onclick="closeCheckout()">Anulează</button>
+    <button class="btn btn-primary" onclick="sendOrderEmail()">Trimite comanda</button>
+  </div>
+</div>
+
+<script>
+  // ====== DATE FIRMĂ / CONTACT ======
+  const STORE_NAME  = "Furnicuța Fermieră";
+  const STORE_EMAIL = "furnicutafermiera@yahoo.com"; // emailul tău
+  const STORE_PHONE = "0755334942";
+  const STORE_ADDRESS = "Localitatea Doba, jud. Satu Mare";
+
+  // ====== PRODUSE (10) ======
+  // Imagini locale necesare: img/p1.jpg ... img/p10.jpg
+  const products = [
+    {
+      id:"p1",
+      name:"Telemea de oaie",
+      price:50.00,
+      unit:"kg",
+      short:"Telemea de oaie tradițională – 50,00 lei/kg.",
+      details:"Telemea de oaie maturată natural, cu gust intens și textură fermă. Produs obținut din lapte de oaie. Păstrare la rece (2–6°C). Cantitatea reprezintă număr de kg.",
+      img:"img/p1.jpg"
+    },
+    {
+      id:"p2",
+      name:"Pastramă de oaie crudă și marinată",
+      price:84.99,
+      unit:"kg",
+      short:"Pastramă crudă marinată – 84,99 lei/kg.",
+      details:"Pastramă de oaie crudă, marinată cu sare și condimente naturale (profil tradițional). Ideală pentru prăjit, cuptor sau grătar. Se livrează refrigerată. Cantitatea reprezintă număr de kg.",
+      img:"img/p2.jpg"
+    },
+    {
+      id:"p3",
+      name:"Cârnați cruzi de oaie",
+      price:69.99,
+      unit:"kg",
+      short:"Cârnați cruzi din carne de oaie – 69,99 lei/kg.",
+      details:"Cârnați cruzi preparați din carne de oaie, condimentați echilibrat. Recomandați pentru grătar, tigaie sau cuptor. Se păstrează la rece și se prepară termic înainte de consum.",
+      img:"img/p3.jpg"
+    },
+    {
+      id:"p4",
+      name:"Lapte de oaie proaspăt",
+      price:13.99,
+      unit:"litru",
+      short:"Lapte de oaie proaspăt – 13,99 lei/litru.",
+      details:"Lapte de oaie proaspăt, natural, bogat și cremos. Potrivit pentru consum direct sau preparate (brânzeturi, iaurt). A se păstra la rece și a se consuma în termen scurt.",
+      img:"img/p4.jpg"
+    },
+    {
+      id:"p5",
+      name:"Costițe de oaie",
+      price:49.99,
+      unit:"kg",
+      short:"Costițe de oaie – 49,99 lei/kg.",
+      details:"Costițe de oaie atent tranșate, ideale pentru cuptor sau grătar. Textură fragedă și gust autentic. Se livrează refrigerate. Cantitatea reprezintă număr de kg.",
+      img:"img/p5.jpg"
+    },
+    {
+      id:"p6",
+      name:"Caș proaspăt de oaie",
+      price:39.99,
+      unit:"kg",
+      short:"Caș proaspăt de oaie – 39,99 lei/kg.",
+      details:"Caș proaspăt din lapte de oaie, cu gust delicat și consistență moale. Excelent simplu, în salate sau la gătit. Păstrare la rece (2–6°C).",
+      img:"img/p6.jpg"
+    },
+    {
+      id:"p7",
+      name:"Cârnați uscați afumați",
+      price:79.99,
+      unit:"kg",
+      short:"Cârnați uscați și afumați – 79,99 lei/kg.",
+      details:"Cârnați din carne de oaie, uscați și afumați lent pentru aromă intensă. Perfecți pentru platouri reci, gustări sau sandvișuri. Cantitatea reprezintă număr de kg.",
+      img:"img/p7.jpg"
+    },
+    {
+      id:"p8",
+      name:"Pastramă uscată afumată de oaie",
+      price:85.99,
+      unit:"kg",
+      short:"Pastramă uscată afumată – 85,99 lei/kg.",
+      details:"Pastramă de oaie maturată, uscată și afumată tradițional. Aromă puternică, textură fermă. Ideală pentru platouri reci sau gătită ușor la tigaie.",
+      img:"img/p8.jpg"
+    },
+    {
+      id:"p9",
+      name:"Mititei din carne de oaie condimentați",
+      price:38.99,
+      unit:"kg",
+      short:"Mititei din carne de oaie – 38,99 lei/kg.",
+      details:"Mititei din carne de oaie, bine condimentați, pregătiți pentru grătar. Recomandare: gătiți complet înainte de consum. Se livrează refrigerat.",
+      img:"img/p9.jpg"
+    },
+    {
+      id:"p10",
+      name:"Frigărui din carne de oaie",
+      price:84.99,
+      unit:"kg",
+      short:"Frigărui din carne de oaie – 84,99 lei/kg.",
+      details:"Bucăți de carne de oaie tăiate pentru frigărui, ideale pentru grătar sau tigaie. Gust intens, potrivite cu legume. Se livrează refrigerat. Cantitatea reprezintă număr de kg.",
+      img:"img/p10.jpg"
+    }
+  ];
+
+  // ====== ELEMENTE UI ======
+  const introPreview = document.getElementById("introPreview");
+  const productGrid  = document.getElementById("productGrid");
+  const detailsBox   = document.getElementById("detailsBox");
+
+  const cartCount    = document.getElementById("cartCount");
+  const cartCount2   = document.getElementById("cartCount2");
+  const cartBody     = document.getElementById("cartBody");
+  const totalEl      = document.getElementById("total");
+  const bd           = document.getElementById("bd");
+  const drawer       = document.getElementById("drawer");
+
+  // Checkout modal elements
+  const mbd = document.getElementById("mbd");
+  const modal = document.getElementById("modal");
+  const orderSummary = document.getElementById("orderSummary");
+  const errBox = document.getElementById("errBox");
+
+  const cEmail = document.getElementById("cEmail");
+  const cPhone = document.getElementById("cPhone");
+  const cAddress = document.getElementById("cAddress");
+  const cPayment = document.getElementById("cPayment");
+  const cNotes = document.getElementById("cNotes");
+
+  const needInvoice = document.getElementById("needInvoice");
+  const invoiceBox = document.getElementById("invoiceBox");
+  const invName = document.getElementById("invName");
+  const invId = document.getElementById("invId");
+  const invAddress = document.getElementById("invAddress");
+
+  needInvoice.addEventListener("change", () => {
+    invoiceBox.classList.toggle("open", needInvoice.checked);
+  });
+
+  // ====== COȘ ======
+  const cart = new Map();
+
+  // ====== UTILITARE ======
+  function money(n){
+    return new Intl.NumberFormat("ro-RO", {minimumFractionDigits:2, maximumFractionDigits:2}).format(n) + " lei";
+  }
+  function unitLabel(p){ return " / " + p.unit; }
+  function getP(id){ return products.find(p => p.id === id); }
+
+  function escapeHtml(str){
+    return String(str)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  // ====== NAV ======
+  function go(page){
+    document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+    document.getElementById("page-" + page).classList.add("active");
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+
+  // ====== COȘ (UI) ======
+  function openCart(){ drawer.classList.add("open"); bd.classList.add("open"); renderCart(); }
+  function closeCart(){ drawer.classList.remove("open"); bd.classList.remove("open"); }
+
+  function updateBadge(){
+    let c = 0;
+    for (const q of cart.values()) c += q;
+    cartCount.textContent  = c;
+    cartCount2.textContent = c;
+  }
+
+  function addToCart(id, qty){
+    qty = Math.max(0.1, Number(qty) || 1);
+    cart.set(id, (cart.get(id) || 0) + qty);
+    updateBadge();
+  }
+
+  function setQty(id, qty){
+    qty = Number(qty);
+    if (!qty || qty <= 0) cart.delete(id);
+    else cart.set(id, qty);
+    updateBadge();
+    renderCart();
+  }
+
+  function cartTotal(){
+    let t = 0;
+    for (const [id, q] of cart.entries()){
+      const p = getP(id);
+      if (p) t += p.price * q;
+    }
+    return t;
+  }
+
+  // ====== CARD PRODUSE ======
+  function productCard(p, compact=false){
+    return `
+      <div class="card">
+        <img src="${p.img}" alt="${escapeHtml(p.name)}">
+        <div class="c">
+          <div class="title-row">
+            <h3 class="name" onclick="openDetails('${p.id}')">${escapeHtml(p.name)}</h3>
+            <div class="price">${money(p.price)}${unitLabel(p)}</div>
+          </div>
+          <div class="desc">${escapeHtml(p.short)}</div>
+
+          ${compact ? `
+            <div class="row">
+              <button class="btn btn-primary" onclick="go('products')">Vezi</button>
+              <button class="btn" onclick="openCart()">Coș</button>
+            </div>
+          ` : `
+            <div class="row">
+              <div>
+                <span class="muted" style="font-size:12px;">Cant. (${escapeHtml(p.unit)})</span><br/>
+                <input class="qty" type="number" min="0.1" step="0.1" value="1" id="q-${p.id}">
+              </div>
+              <button class="btn btn-primary" onclick="addToCart('${p.id}', document.getElementById('q-${p.id}').value); openCart();">
+                Adaugă în coș
+              </button>
+            </div>
+          `}
+        </div>
+      </div>
+    `;
+  }
+
+  // ====== PAGINĂ DETALII ======
+  function openDetails(id){
+    const p = getP(id);
+    if (!p) return;
+
+    detailsBox.innerHTML = `
+      <div class="card"><img src="${p.img}" alt="${escapeHtml(p.name)}"></div>
+
+      <div class="card">
+        <div class="c">
+          <div class="title-row">
+            <h2 style="margin:0;font-size:22px;">${escapeHtml(p.name)}</h2>
+            <div class="price" style="font-size:18px;">${money(p.price)}${unitLabel(p)}</div>
+          </div>
+
+          <p class="muted" style="margin:10px 0 0;line-height:1.55;">
+            ${escapeHtml(p.details)}
+          </p>
+
+          <div class="kv">
+            <div><b>Origine:</b> Fermă tradițională</div>
+            <div><b>Păstrare:</b> la rece (recomandat)</div>
+            <div><b>Contact:</b> ${escapeHtml(STORE_PHONE)} · ${escapeHtml(STORE_EMAIL)}</div>
+            <div><b>Adresă:</b> ${escapeHtml(STORE_ADDRESS)}</div>
+          </div>
+
+          <div class="row" style="margin-top:12px;">
+            <div>
+              <span class="muted" style="font-size:12px;">Cant. (${escapeHtml(p.unit)})</span><br/>
+              <input class="qty" type="number" min="0.1" step="0.1" value="1" id="qd-${p.id}">
+            </div>
+            <button class="btn btn-primary" onclick="addToCart('${p.id}', document.getElementById('qd-${p.id}').value); openCart();">
+              Adaugă în coș
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    go("details");
+  }
+
+  // ====== RENDER COȘ ======
+  function renderCart(){
+    const items = Array.from(cart.entries()).map(([id,qty]) => ({p:getP(id), qty})).filter(x => x.p);
+
+    if (items.length === 0){
+      cartBody.innerHTML = `<p class="muted">Coșul este gol.</p>`;
+      totalEl.textContent = money(0);
+      return;
+    }
+
+    cartBody.innerHTML = items.map(({p, qty}) => `
+      <div class="line">
+        <div>
+          <b>${escapeHtml(p.name)}</b>
+          <span>${money(p.price)}${unitLabel(p)} · cant: ${qty} ${escapeHtml(p.unit)} · subtotal: ${money(p.price * qty)}</span>
+        </div>
+        <div class="mini">
+          <button class="btn" onclick="setQty('${p.id}', ${qty} - 1)">−</button>
+          <button class="btn" onclick="setQty('${p.id}', ${qty} + 1)">+</button>
+          <button class="btn" onclick="setQty('${p.id}', 0)">✕</button>
+        </div>
+      </div>
+    `).join("");
+
+    cartBody.innerHTML += `
+      <div class="row" style="margin-top:12px;">
+        <button class="btn" onclick="cart.clear(); updateBadge(); renderCart();">Golește coșul</button>
+        <button class="btn" onclick="go('products'); closeCart();">Înapoi la produse</button>
+      </div>
+      <div class="contact-box" style="margin-top:14px;">
+        <div><b>Furnicuța Fermieră</b></div>
+        <div>${escapeHtml(STORE_ADDRESS)}</div>
+        <div>Telefon: ${escapeHtml(STORE_PHONE)}</div>
+        <div>Email: ${escapeHtml(STORE_EMAIL)}</div>
+      </div>
+    `;
+
+    totalEl.textContent = money(cartTotal());
+  }
+
+  // ====== CHECKOUT ======
+  function openCheckout(){
+    if (cart.size === 0){ alert("Coșul este gol."); return; }
+    errBox.style.display = "none";
+    orderSummary.textContent = `Total comandă: ${money(cartTotal())}. Completează datele și trimite comanda către ${STORE_EMAIL}.`;
+    mbd.classList.add("open");
+    modal.classList.add("open");
+
+    // precompletăm emailul clientului cu nimic; emailul de destinație e STORE_EMAIL
+  }
+
+  function closeCheckout(){
+    mbd.classList.remove("open");
+    modal.classList.remove("open");
+  }
+
+  function isEmailValid(email){
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || "").trim());
+  }
+
+  function showError(msg){
+    errBox.textContent = msg;
+    errBox.style.display = "block";
+  }
+
+  function sendOrderEmail(){
+    const email = cEmail.value.trim();
+    const phone = cPhone.value.trim();
+    const address = cAddress.value.trim();
+    const payment = cPayment.value;
+
+    if (!isEmailValid(email)) return showError("Te rog introdu un email valid.");
+    if (phone.length < 6) return showError("Te rog introdu un număr de telefon.");
+    if (address.length < 10) return showError("Te rog completează adresa de livrare.");
+
+    if (needInvoice.checked){
+      if (invName.value.trim().length < 2) return showError("Completează numele/denumirea pentru factură.");
+      if (invId.value.trim().length < 5) return showError("Completează CNP/CIF pentru factură.");
+      if (invAddress.value.trim().length < 10) return showError("Completează adresa de facturare.");
+    }
+
+    const lines = [];
+    lines.push(`Bună,`);
+    lines.push(``);
+    lines.push(`Comandă nouă – ${STORE_NAME}`);
+    lines.push(`Adresă fermă: ${STORE_ADDRESS}`);
+    lines.push(`Telefon fermă: ${STORE_PHONE}`);
+    lines.push(`Email fermă: ${STORE_EMAIL}`);
+    lines.push(``);
+    lines.push(`Produse:`);
+
+    for (const [id, qty] of cart.entries()){
+      const p = getP(id);
+      if (p) lines.push(`- ${p.name} x ${qty} ${p.unit} = ${money(p.price * qty)}`);
+    }
+
+    lines.push(``);
+    lines.push(`Total: ${money(cartTotal())}`);
+    lines.push(``);
+    lines.push(`Date client:`);
+    lines.push(`Email client: ${email}`);
+    lines.push(`Telefon client: ${phone}`);
+    lines.push(`Adresă livrare: ${address}`);
+    lines.push(`Metodă plată: ${payment}`);
+    if (cNotes.value.trim()) lines.push(`Observații: ${cNotes.value.trim()}`);
+
+    lines.push(``);
+    lines.push(`Factură: ${needInvoice.checked ? "DA" : "NU"}`);
+    if (needInvoice.checked){
+      lines.push(`Date facturare:`);
+      lines.push(`Nume/Denumire: ${invName.value.trim()}`);
+      lines.push(`CNP/CIF: ${invId.value.trim()}`);
+      lines.push(`Adresă facturare: ${invAddress.value.trim()}`);
+    }
+
+    const subject = encodeURIComponent(`Comandă nouă – ${STORE_NAME}`);
+    const body = encodeURIComponent(lines.join("\n"));
+    window.location.href = `mailto:${encodeURIComponent(STORE_EMAIL)}?subject=${subject}&body=${body}`;
+  }
+
+  // ====== INIT RENDER ======
+  // Intro: arătăm primele 4 ca recomandate
+  introPreview.innerHTML = products.slice(0,4).map(p => productCard(p, true)).join("");
+  productGrid.innerHTML  = products.map(p => productCard(p, false)).join("");
+  updateBadge();
+
+  // ESC closes overlays
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape"){
+      closeCheckout();
+      closeCart();
+    }
+  });
+</script>
+
+</body>
+</html>
